@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ChatBotResponse {
+public class MovieRecommendationResponse {
 
     private String message;
 }

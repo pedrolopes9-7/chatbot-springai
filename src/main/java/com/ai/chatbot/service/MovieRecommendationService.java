@@ -17,11 +17,21 @@ public class MovieRecommendationService {
 
     private static final String INSTRUCTIONS_PROMPT_MESSAGE = """
         You're a movie recommendation system. You should read the `movie_genre` and recommend exactly 5 movies.
-        
-        Write the final recommendation using the following format:
+                
+        Write the final recommendation using the following template:
         Movie Name: <name of the movie>
         Synopsis: <a very short synopsis of the movie>
         Cast: <the main cast>
+        """;
+
+    private static final String EXAMPLES_PROMPT_MESSAGE = """
+        Use the `movies_list` to read each `movie_name`. The `movie_list` represents a movie that the user watched and liked.
+                
+        Recommend similar movies to the ones presented in `movies_list` that falls exactly or close to the `movie_genre` provided.
+                
+        `movies_list`=
+                
+        %s
         """;
 
     public MovieRecommendationService(OllamaChatModel ollamaChatClient) {
@@ -33,17 +43,24 @@ public class MovieRecommendationService {
         var generalInstructions = new SystemMessage(INSTRUCTIONS_PROMPT_MESSAGE);
 
         var prompt = new Prompt(List.of(userMessage, generalInstructions));
-        return ollamaChatClient.call(prompt).getResult().getOutput().getContent();
+        return ollamaChatClient.call(prompt)
+            .getResult()
+            .getOutput()
+            .getContent();
     }
 
     public String recommend(String genre, List<String> movies) {
-        var moviesCollected = "user_movies_list: \n".concat(movies.stream()
-            .collect(joining(",", "movie_name=", "\n")));
+        var moviesCollected = movies.stream()
+            .collect(joining("", "`movie_name`=", "\n"));
 
         var promptMessage = String.format("Give me 5 movie recommendations on the genre %s", genre);
         var currentPromptMessage = new UserMessage(promptMessage);
+        var examplesSystemMessage = new SystemMessage(String.format(EXAMPLES_PROMPT_MESSAGE, moviesCollected));
 
-        var prompt = new Prompt(currentPromptMessage);
-        return ollamaChatClient.call(prompt).getResult().getOutput().getContent();
+        var prompt = new Prompt(List.of(currentPromptMessage, examplesSystemMessage));
+        return ollamaChatClient.call(prompt)
+            .getResult()
+            .getOutput()
+            .getContent();
     }
 }

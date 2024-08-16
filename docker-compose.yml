@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    restart: always
+    environment:
+      - POSTGRES_USER=pgadmin
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=vector_store
+      - PGPASSWORD=root
+    ports:
+      - '5432:5432'
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"

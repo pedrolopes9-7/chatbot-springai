@@ -3,46 +3,56 @@ package com.ai.chatbot.service;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class MovieRecommendationService {
 
     private final OllamaChatModel ollamaChatClient;
 
+    private final VectorStore vectorStore;
+
     private static final String INSTRUCTIONS_PROMPT_MESSAGE = """
-        You're a movie recommendation system. You should read the `movie_genre` and recommend exactly 5 movies.
-                
+        You're a movie recommendation system. Recommend exactly 100 movies on `movie_genre`=%s.
         Write the final recommendation using the following template:
-        Movie Name: <name of the movie>
-        Synopsis: <a very short synopsis of the movie>
-        Cast: <the main cast>
+        Movie Name:
+        Synopsis:
+        Cast:
         """;
 
     private static final String EXAMPLES_PROMPT_MESSAGE = """
-        Use the `movies_list` to read each `movie_name`. The `movie_list` represents a movie that the user watched and liked.
-                
+        Use the `movies_list` below to read each `movie_name`.
         Recommend similar movies to the ones presented in `movies_list` that falls exactly or close to the `movie_genre` provided.
-                
-        `movies_list`=
-                
+        `movies_list`:
         %s
         """;
 
-    public MovieRecommendationService(OllamaChatModel ollamaChatClient) {
-        this.ollamaChatClient = ollamaChatClient;
-    }
+    private static final String SIMILARITY_PROMPT = """
+        Use the `documents` below to provide accurate answers, but act as you knew this information innately.
+        
+        `documents`
+        {documents}
+        """;
 
     public String recommend(String genre) {
-        var userMessage = new UserMessage(String.format("`movie_genre`=%s", genre));
-        var generalInstructions = new SystemMessage(INSTRUCTIONS_PROMPT_MESSAGE);
+        var generalInstructions = new UserMessage(String.format(INSTRUCTIONS_PROMPT_MESSAGE, genre));
 
-        var prompt = new Prompt(List.of(userMessage, generalInstructions));
+        var similarDocuments = vectorStore.similaritySearch(generalInstructions.getContent());
+        var documentsMessage = similarDocuments.stream().map(Document::getContent).collect(joining(","));
+        var similaritySystemMessage = new SystemPromptTemplate(SIMILARITY_PROMPT).createMessage(Map.of("documents", documentsMessage));
+
+        var prompt = new Prompt(List.of(similaritySystemMessage, generalInstructions));
         return ollamaChatClient.call(prompt)
             .getResult()
             .getOutput()
@@ -51,13 +61,12 @@ public class MovieRecommendationService {
 
     public String recommend(String genre, List<String> movies) {
         var moviesCollected = movies.stream()
-            .collect(joining("", "`movie_name`=", "\n"));
+            .collect(joining("\n`movie_name`=", "\n", ""));
 
-        var promptMessage = String.format("Give me 5 movie recommendations on the genre %s", genre);
-        var currentPromptMessage = new UserMessage(promptMessage);
+        var generalInstructions = new UserMessage(String.format(INSTRUCTIONS_PROMPT_MESSAGE, genre));
         var examplesSystemMessage = new SystemMessage(String.format(EXAMPLES_PROMPT_MESSAGE, moviesCollected));
 
-        var prompt = new Prompt(List.of(currentPromptMessage, examplesSystemMessage));
+        var prompt = new Prompt(List.of(generalInstructions, examplesSystemMessage));
         return ollamaChatClient.call(prompt)
             .getResult()
             .getOutput()

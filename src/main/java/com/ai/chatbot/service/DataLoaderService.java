@@ -1,5 +1,6 @@
-package com.ai.chatbot.controller;
+package com.ai.chatbot.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.JsonReader;
@@ -13,10 +14,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DataLoaderService {
 
-    @Value("classpath:/datasets/movies.json")
+    @Value("classpath:/datasets/test.json")
     private Resource movieDataset;
 
-    private VectorStore vectorStore;
+    private final VectorStore vectorStore;
 
     public void load() {
         DocumentReader reader = new JsonReader(movieDataset);

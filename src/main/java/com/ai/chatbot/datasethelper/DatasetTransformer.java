@@ -1,22 +1,28 @@
 package com.ai.chatbot.datasethelper;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DatasetTransformer {
 
-    public static void main(String[] args) {
-        String moviesFile = "C:\\Users\\55319\\workroot\\chatbot\\src\\main\\java\\com\\ai\\chatbot\\datasethelper\\movies.csv";
-        String ratingsFile = "C:\\Users\\55319\\workroot\\chatbot\\src\\main\\java\\com\\ai\\chatbot\\datasethelper\\ratings.csv";
-        String tagsFile = "C:\\Users\\55319\\workroot\\chatbot\\src\\main\\java\\com\\ai\\chatbot\\datasethelper\\tags.csv";
-        String outputFile = "C:\\Users\\55319\\workroot\\chatbot\\src\\main\\java\\com\\ai\\chatbot\\datasethelper\\movies.json";
+    public static void main(String[] args) throws IOException, URISyntaxException {
+
+        ClassLoader classLoader = DatasetTransformer.class.getClassLoader();
+
+        File moviesFile = new File(classLoader.getResource("datasets/movies.csv").getFile());
+        File ratingsFile = new File(classLoader.getResource("datasets/ratings.csv").getFile());
+        File tagsFile = new File(classLoader.getResource("datasets/tags.csv").getFile());
+
+        Path source = Paths.get("src/main/resources/datasets/movies.json");
+        File outputFile = source.toFile();
 
         Map<Integer, Movie> movieMap = new HashMap<>();
 
@@ -87,10 +93,7 @@ public class DatasetTransformer {
                 moviesArray.put(movie.toJson());
             }
 
-            JSONObject result = new JSONObject();
-            result.put("movies", moviesArray);
-
-            file.write(result.toString(4));
+            file.write(moviesArray.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }

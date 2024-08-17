@@ -2,6 +2,7 @@ package com.ai.chatbot.controller;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import com.ai.chatbot.service.DataLoaderService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,8 @@ public class MovieRecommendationController {
 
     private final MovieRecommendationService movieRecommendationService;
 
+    private final DataLoaderService dataLoaderService;
+
     @PostMapping("/recommend")
     public MovieRecommendationResponse recommend(@RequestBody MovieRecommendationRequest request) {
         if (request.getGenre() == null || request.getGenre().isEmpty()) {
@@ -34,4 +37,10 @@ public class MovieRecommendationController {
         var message = movieRecommendationService.recommend(request.getGenre());
         return new MovieRecommendationResponse(message);
     }
+
+    @PostMapping("/reload_datasets")
+    public void reloadDatasets() {
+        dataLoaderService.load();
+    }
+
 }

@@ -21,10 +21,10 @@ public class MovieRecommendationService {
 
     private final OllamaChatModel ollamaChatClient;
 
-    private final VectorStore vectorStore;
+    private final VectorStore  vectorStore;
 
     private static final String INSTRUCTIONS_PROMPT_MESSAGE = """
-        You're a movie recommendation system. Recommend exactly 100 movies on `movie_genre`=%s.
+        ou're a movie recommendation system. RYecommend 5 movies on `movie_genre`=%s.
         Write the final recommendation using the following template:
         Movie Name:
         Synopsis:
@@ -32,8 +32,8 @@ public class MovieRecommendationService {
         """;
 
     private static final String EXAMPLES_PROMPT_MESSAGE = """
-        Use the `movies_list` below to read each `movie_name`.
-        Recommend similar movies to the ones presented in `movies_list` that falls exactly or close to the `movie_genre` provided.
+        Use movies tags and ratings and `movie_genre` to recommend the best movies based on `movie_list`.
+
         `movies_list`:
         %s
         """;
@@ -66,7 +66,11 @@ public class MovieRecommendationService {
         var generalInstructions = new UserMessage(String.format(INSTRUCTIONS_PROMPT_MESSAGE, genre));
         var examplesSystemMessage = new SystemMessage(String.format(EXAMPLES_PROMPT_MESSAGE, moviesCollected));
 
-        var prompt = new Prompt(List.of(generalInstructions, examplesSystemMessage));
+        var similarDocuments = vectorStore.similaritySearch(generalInstructions.getContent());
+        var documentsMessage = similarDocuments.stream().map(Document::getContent).collect(joining(","));
+        var similaritySystemMessage = new SystemPromptTemplate(SIMILARITY_PROMPT).createMessage(Map.of("documents", documentsMessage));
+
+        var prompt = new Prompt(List.of(generalInstructions, examplesSystemMessage, similaritySystemMessage));
         return ollamaChatClient.call(prompt)
             .getResult()
             .getOutput()

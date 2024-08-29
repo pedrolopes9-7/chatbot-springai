@@ -1,6 +1,5 @@
 package com.ai.chatbot.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.JsonReader;
@@ -26,8 +25,8 @@ public class DataLoaderService {
 
         TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
 
-        tokenTextSplitter.apply(movies);
+        var tokenizedDocs = tokenTextSplitter.apply(movies);
 
-        vectorStore.accept(movies);
+        vectorStore.accept(tokenizedDocs);
     }
 }

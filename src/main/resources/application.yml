@@ -1,0 +1,23 @@
+spring:
+  neo4j:
+    uri: neo4j://127.0.0.1:7687
+    authentication:
+      username: neo4j
+      password: yakuza74
+  application:
+    name: chatbot
+  ai:
+    vectorstore:
+      neo4j:
+        embedding-dimension: 4096
+        initialize-schema: true
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3
+      embedding:
+        enabled: true
+
+database:
+  init: true

@@ -4,8 +4,6 @@ spring:
     authentication:
       username: neo4j
       password: yakuza74
-  application:
-    name: chatbot
   ai:
     vectorstore:
       neo4j:
@@ -18,6 +16,3 @@ spring:
           model: llama3
       embedding:
         enabled: true
-
-database:
-  init: true

@@ -24,7 +24,7 @@ public class MovieRecommendationService {
     private final VectorStore  vectorStore;
 
     private static final String INSTRUCTIONS_PROMPT_MESSAGE = """
-        ou're a movie recommendation system. RYecommend 5 movies on `movie_genre`=%s.
+        You're a movie recommendation system. Recommend 5 movies on `movie_genre`=%s.
         Write the final recommendation using the following template:
         Movie Name:
         Synopsis:

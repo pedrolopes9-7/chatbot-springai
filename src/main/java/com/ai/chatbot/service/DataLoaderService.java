@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DataLoaderService {
 
-    @Value("classpath:/datasets/test.json")
+    @Value("classpath:/datasets/movies2.json")
     private Resource movieDataset;
 
     private final VectorStore vectorStore;

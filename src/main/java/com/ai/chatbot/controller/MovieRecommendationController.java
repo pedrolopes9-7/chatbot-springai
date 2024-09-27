@@ -42,5 +42,4 @@ public class MovieRecommendationController {
     public void reloadDatasets() {
         dataLoaderService.load();
     }
-
 }
